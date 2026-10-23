@@ -1,0 +1,12 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: blueshift
+  description: "Jamf Concepts macOS app/admin utility which provides insights around which legacy configuration profiles can be migrated to Blueprints and will assist with those migrations. Release packages and documentation only; no source."
+  tags:
+  - concepts
+spec:
+  type: application
+  lifecycle: production
+  owner: concepts
+  system: jamf-concept-projects
