@@ -1,7 +1,7 @@
 # Blueshift
 
 > **This repository contains no source code.** It hosts documentation, release
-> packages and the issue tracker for Blueshift. Compiled builds are published
+> builds and the issue tracker for Blueshift. Compiled builds are published
 > under [Releases](https://github.com/Jamf-Concepts/blueshift/releases).
 
 Move Jamf Pro configuration profiles to Jamf Blueprints — and see exactly what
@@ -48,12 +48,14 @@ More screenshots: [Devices](docs/screenshots/devices.png) ·
 
 ## Install
 
-1. Download `Blueshift-<version>.pkg` from
+1. Download `Blueshift-<version>.dmg` from
    [Releases](https://github.com/Jamf-Concepts/blueshift/releases).
-2. Open it and follow the installer. Requires **macOS 14 or later**.
+2. Open it and drag **Blueshift** to **Applications**. Requires **macOS 14 or
+   later**.
 
-The package is signed and notarised by Apple. Credentials are stored in your
-login keychain.
+The app is signed by Jamf and notarised by Apple. Credentials are stored in your
+login keychain; the first time you connect, macOS may ask twice to allow
+Blueshift to use them — choose **Always Allow**.
 
 ## Get started
 
