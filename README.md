@@ -1,3 +1,7 @@
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/Jamf-Concepts/blueshift?display_name=tag)
+![GitHub all releases](https://img.shields.io/github/downloads/Jamf-Concepts/blueshift/total) ![GitHub latest release](https://img.shields.io/github/downloads/Jamf-Concepts/blueshift/latest/total)
+![GitHub issues](https://img.shields.io/github/issues-raw/Jamf-Concepts/blueshift) ![GitHub closed issues](https://img.shields.io/github/issues-closed-raw/Jamf-Concepts/blueshift)
+
 # Blueshift
 
 > **This repository contains no source code.** It hosts documentation, release
