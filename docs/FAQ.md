@@ -15,7 +15,9 @@ confirmation, and needs Configuration Profiles — Delete.
 
 **I migrated the wrong thing. Can I undo it?**
 Yes, straight away: the result sheet has **Undo this migration**, which removes
-the blueprint just created. The profile is untouched either way.
+the blueprint just created. The profile is untouched either way. Undo needs the
+optional **Blueprints — Delete** permission on the integration; without it, the
+undo fails with a 403 error.
 
 **Does it need a Jamf Pro API client or password?**
 No. One Jamf Account integration reaches both the Jamf Platform API and your Jamf
