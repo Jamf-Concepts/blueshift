@@ -22,6 +22,8 @@ original so two things never manage the same settings.
 | ![Create Blueprint](docs/screenshots/migrate-scope.png) **Create Blueprint** — the scope compared line by line, with a recommendation. | ![Smart group](docs/screenshots/migrate-smartgroup.png) **Build a smart group** — one group that says what the whole scope said. |
 | ![Blueprints](docs/screenshots/blueprints.png) **Blueprints** — scope, contents and per-device rollout. | ![Migrations](docs/screenshots/migrations.png) **Migrations** — what moved, and what is left to retire. |
 
+| ![Keep as Installed](docs/screenshots/migrate-keep.png) **Keep as Installed** — devices keep the profile, and the blueprint takes it over. | ![Retire a kept profile](docs/screenshots/retire-kept.png) **Retire** — what to expect before an adopted profile's original goes. |
+
 More screenshots: [Devices](docs/screenshots/devices.png) ·
 [Activity](docs/screenshots/activity.png) ·
 [Payload Registry](docs/screenshots/registry.png) ·
@@ -38,6 +40,14 @@ More screenshots: [Devices](docs/screenshots/devices.png) ·
 - **Migrate one or many.** macOS, iOS and iPadOS profiles, from Jamf Pro or a
   `.mobileconfig` on disk. Passcode, Safari, software-update and Rapid Security
   Response settings become native declarative components.
+- **Keep a profile as installed.** Instead of converting it, let the blueprint
+  take the profile over where it is, using Apple's transition from MDM: no
+  reinstall and no gap on devices. Blueshift checks the profile qualifies, reads
+  the blueprint back, and won't retire the original until the blueprint has
+  succeeded with none failed or pending. It can't see devices outside the
+  blueprint's groups, so it warns you to check they cover the profile's scope.
+  Tested on macOS and on a supervised iPhone; see
+  [Keeping a profile as installed](docs/HOW-IT-WORKS.md#keeping-a-profile-as-installed).
 - **Carry the scope across.** Every target, limitation and exclusion is compared
   with what a blueprint can express, and Blueshift can build one smart group
   that covers the rest.
@@ -80,8 +90,9 @@ Jamf Pro API client or password to set up.
 Then migrate:
 
 1. **Profiles** — select a profile and review its verdicts and scope.
-2. **Create Blueprint** — check the name, description and scope comparison;
-   use the recommended groups or build a smart group; click **Create**.
+2. **Create Blueprint** — choose **Convert** or **Keep as Installed**; check the
+   name, description and scope comparison; use the recommended groups or build a
+   smart group; click **Create**.
 3. **Migrations** — once the blueprint is proven, **Retire the original
    profile**.
 
@@ -105,7 +116,7 @@ optional one only switches off the feature that needs it.
 | Configuration Profiles — Delete | Optional — deleting an original outright | `DELETE proclassic/…/id/{id}` |
 | Device Groups — Create | Optional — **Build a smart group** | `POST device-groups/v1/device-groups` |
 | Jamf Pro Server URL — Read | Optional — **Open in Jamf Pro** links | `GET pro/v1/jamf-pro-server-url` |
-| Computer Inventory — Read | Optional — records which Mac and user ran a migration | `GET pro/v1/computers-inventory` |
+| Computer Inventory — Read | Optional — records which Mac and user ran a migration | `GET pro/v4/computers-inventory` |
 | Departments — Read | Optional — your department in blueprint descriptions | `GET pro/v1/departments/{id}` |
 | Blueprints — Deploy | Optional — the Deploy and Undeploy buttons; migrating never deploys | `POST …/blueprints/{id}/deploy` |
 | Blueprints — Delete | Optional — **Undo** straight after a migration | `DELETE …/blueprints/{id}` |
@@ -127,6 +138,11 @@ The same list, with a **Copy Permission List** button, is behind the **?** in
 | A blueprint fails with `VALIDATION_FAILURE` | Open **Payload Registry → Re-check against this tenant** and migrate again. If the API names a missing key, Blueshift offers to re-send that payload as managed preferences. |
 | A profile shows as **Unreadable** | It is signed, empty or not a property list. Export it unsigned and drag it in. |
 | Blueprint scope will not save | Every blueprint needs at least one device group — the Platform API refuses an empty scope. |
+
+| Retiring a kept profile says **Not yet** | The blueprint isn't deployed, reports no devices, or has devices failed or pending. Deploy it and wait until nothing is failed or pending |
+| A failed **Remove Configuration Profile** after retiring a kept profile | Expected. The device has adopted the profile and keeps its settings |
+| A failed **Install Configuration Profile** after renaming a kept profile | Expected. The device keeps its name until the blueprint next updates the profile |
+| **Keep as Installed** is greyed out | The reason is listed under it. Use **Convert** |
 
 More answers: [FAQ](docs/FAQ.md).
 
@@ -154,6 +170,19 @@ method, path, status, timing and size — never bodies or credentials.
   you can decide.
 - **A blueprint with no components cannot be edited through the API.** Add its
   contents in Jamf Pro first.
+- **Not every profile can be kept as installed.** A payload whose `PayloadUUID`
+  differs from its `PayloadIdentifier`, or a type the API refuses, can't be
+  adopted. Blueshift names the reason. Editing an adopted profile later changes
+  its top-level UUID and install date on devices, though it stays one profile,
+  and any setting the API dropped when the blueprint was created disappears then.
+- **A kept profile's blueprint must cover its whole scope before you retire it.**
+  Blueshift only sees the devices in the blueprint's groups, so it warns rather
+  than checks. A device outside them loses the profile and its settings.
+- **Undeploying a kept profile leaves a gap.** With the original still scoped,
+  Jamf Pro reinstalls it only at the next inventory update. With the original
+  retired, the settings are gone.
+- **Keep as Installed hasn't been tested on iPad or Apple TV.** Testing covered
+  macOS and one supervised iPhone, on one tenant, so start with a test group.
 
 ## More
 

@@ -8,6 +8,7 @@
 - [The screens](#the-screens)
 - [Scope: comparison, smart groups and "All" scopes](#scope-comparison-smart-groups-and-all-scopes)
 - [The blueprint's description](#the-blueprints-description)
+- [Keeping a profile as installed](#keeping-a-profile-as-installed)
 - [Retiring the original](#retiring-the-original)
 - [Working as a team](#working-as-a-team)
 - [Where legacy and declarative genuinely disagree](#where-legacy-and-declarative-genuinely-disagree)
@@ -196,6 +197,44 @@ inventory assigns to this Mac, found by serial number.
 A short `[blueshift v1 …]` tag is always added at the end. It is how Blueshift
 on any Mac recognises the blueprint as a migration.
 
+## Keeping a profile as installed
+
+**Convert** builds a new blueprint beside the profile, so devices install
+something new. **Keep as Installed** uses Apple's transition from MDM: when the
+blueprint is deployed, each device that has the same profile takes it over where
+it is, with no reinstall. Nothing becomes declarative, and every payload stays as
+it is.
+
+Blueshift sends the profile's own identifiers, as one configuration-profile
+component, and reads the blueprint back to check they survived. A profile
+qualifies only when they can: for example, a payload whose `PayloadUUID` differs
+from its `PayloadIdentifier` can't, because the API forces them to be equal.
+Blueshift names the reason. In a batch, a profile that doesn't qualify is skipped,
+never quietly converted. Imported files don't offer this route, because no device
+got them from Jamf Pro.
+
+What we saw on a Mac and a supervised iPhone (iOS 26.6):
+
+| Step | Result |
+|---|---|
+| Deploy | The blueprint reports success with no install command. On the Mac, the install date didn't change |
+| Retire the original | Refused until the blueprint has succeeded with none failed or pending, then allowed |
+| After retiring | Jamf Pro logs a failed Remove Configuration Profile for each device, and the settings stay. A Mac says "not installed by the MDM server"; an iPhone says "managed by Declarative Device Management" |
+| Rename the original after adoption (Mac) | Jamf Pro logs a failed Install Configuration Profile, and the device keeps its name |
+| Edit a value and redeploy (Mac) | The same profile updates. Its identifier stays, its top-level UUID and install date change, and any setting the API dropped goes |
+| Leave scope, original retired | The profile and its settings come off |
+| Leave scope, original still scoped (Mac) | The profile comes off, then returns from Jamf Pro at the next inventory update. The settings are missing until then |
+
+**The retire check has a limit.** It reads the blueprint's own rollout, which
+says nothing about devices outside its groups. If a profile reaches 1,000 Macs and
+the blueprint has succeeded on a test group of 5, retiring the original strips the
+profile and its settings from the other 995. Blueshift warns about this rather
+than blocking, because different groups can hold the same devices and comparing
+group names would refuse valid setups. Make sure the blueprint's groups cover the
+profile's scope first.
+
+iPad and Apple TV haven't been tested, so try those on a test group first.
+
 ## Retiring the original
 
 Until the configuration profile stops managing devices, two things manage the
@@ -211,6 +250,9 @@ offered only **Delete** — retiring it again would change nothing.
 
 From a migration you can also **Show the profile** or **Open the profile in
 Jamf Pro** while it still exists.
+
+A profile [kept as installed](#keeping-a-profile-as-installed) follows stricter
+rules, because retiring it on a device that hasn't adopted it removes its settings.
 
 ## Working as a team
 
