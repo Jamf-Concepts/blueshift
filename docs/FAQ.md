@@ -41,7 +41,7 @@ settings from devices. With the original still scoped, Jamf Pro reinstalls it at
 the next inventory update, and the settings are missing until then.
 
 **Does Keep as Installed work on iPhone?**
-It worked on a supervised iPhone on iOS 26.6. iPad and Apple TV haven't been
+It worked on a supervised iPhone on iOS 26.6 and 27.2. iPad and Apple TV haven't been
 tested, so start with a test group.
 
 **What does Blueshift send, and where?**

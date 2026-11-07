@@ -199,6 +199,13 @@ on any Mac recognises the blueprint as a migration.
 
 ## Keeping a profile as installed
 
+**Convert is the default, and the right choice for a large fleet.** A kept profile
+has the same identity as its original, so once the original is unscoped or deleted
+Jamf Pro sends each device a Remove command it refuses, and can keep retrying. One
+customer fleet reached over 100,000 failed commands
+([jamf-cli #466](https://github.com/Jamf-Concepts/jamf-cli/pull/466)). Blueshift
+warns about this, and can't prevent it.
+
 **Convert** builds a new blueprint beside the profile, so devices install
 something new. **Keep as Installed** uses Apple's transition from MDM: when the
 blueprint is deployed, each device that has the same profile takes it over where
@@ -213,13 +220,13 @@ Blueshift names the reason. In a batch, a profile that doesn't qualify is skippe
 never quietly converted. Imported files don't offer this route, because no device
 got them from Jamf Pro.
 
-What we saw on a Mac and a supervised iPhone (iOS 26.6):
+What we saw on a Mac and a supervised iPhone (iOS 26.6 and 27.2):
 
 | Step | Result |
 |---|---|
 | Deploy | The blueprint reports success with no install command. On the Mac, the install date didn't change |
 | Retire the original | Refused until the blueprint has succeeded with none failed or pending, then allowed |
-| After retiring | Jamf Pro logs a failed Remove Configuration Profile for each device, and the settings stay. A Mac says "not installed by the MDM server"; an iPhone says "managed by Declarative Device Management" |
+| After retiring | Each device refuses Jamf Pro's Remove Configuration Profile, and the settings stay. A Mac says "not installed by the MDM server"; an iPhone says "managed by Declarative Device Management" |
 | Rename the original after adoption (Mac) | Jamf Pro logs a failed Install Configuration Profile, and the device keeps its name |
 | Edit a value and redeploy (Mac) | The same profile updates. Its identifier stays, its top-level UUID and install date change, and any setting the API dropped goes |
 | Leave scope, original retired | The profile and its settings come off |
@@ -247,6 +254,10 @@ is right. The recommended action **renames and unscopes** it and files it in the
 superseded in Jamf Pro, and can be put back by re-scoping. Deleting is offered
 last, behind its own confirmation. An original that is already retired is
 offered only **Delete** — retiring it again would change nothing.
+
+On every route, unscoping or deleting an original that still reaches devices is
+refused until the blueprint's rollout confirms it: deployed, at least one device
+succeeded, none failed or pending. A rollout that can't be read counts as a no.
 
 From a migration you can also **Show the profile** or **Open the profile in
 Jamf Pro** while it still exists.

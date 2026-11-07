@@ -52,7 +52,9 @@ More screenshots: [Devices](docs/screenshots/devices.png) ·
   with what a blueprint can express, and Blueshift can build one smart group
   that covers the rest.
 - **Retire the original.** Rename and unscope it (the default) or delete it, so
-  the old profile stops managing the same settings.
+  the old profile stops managing the same settings. Blueshift refuses to unscope
+  or delete it until the blueprint's rollout confirms it: deployed, with none
+  failed or pending.
 - **Work as a team.** Every blueprint records who migrated it and which profile
   it replaced, so every admin sees the same picture.
 
@@ -139,8 +141,8 @@ The same list, with a **Copy Permission List** button, is behind the **?** in
 | A profile shows as **Unreadable** | It is signed, empty or not a property list. Export it unsigned and drag it in. |
 | Blueprint scope will not save | Every blueprint needs at least one device group — the Platform API refuses an empty scope. |
 
-| Retiring a kept profile says **Not yet** | The blueprint isn't deployed, reports no devices, or has devices failed or pending. Deploy it and wait until nothing is failed or pending |
-| A failed **Remove Configuration Profile** after retiring a kept profile | Expected. The device has adopted the profile and keeps its settings |
+| Retiring a profile says **Not yet** | The blueprint isn't deployed, reports no devices, or has devices failed or pending. Deploy it and wait until nothing is failed or pending |
+| A failed **Remove Configuration Profile** after retiring a kept profile | The device has adopted the profile and keeps its settings, but these commands can be retried and pile up on a large fleet. See **Known gaps** |
 | A failed **Install Configuration Profile** after renaming a kept profile | Expected. The device keeps its name until the blueprint next updates the profile |
 | **Keep as Installed** is greyed out | The reason is listed under it. Use **Convert** |
 
@@ -181,6 +183,13 @@ method, path, status, timing and size — never bodies or credentials.
 - **Undeploying a kept profile leaves a gap.** With the original still scoped,
   Jamf Pro reinstalls it only at the next inventory update. With the original
   retired, the settings are gone.
+- **Keep as Installed can flood a large fleet with failed commands.** Once the
+  original is unscoped or deleted, Jamf Pro sends each device a Remove command it
+  refuses, and can keep retrying. One customer fleet reached over 100,000
+  ([jamf-cli #466](https://github.com/Jamf-Concepts/jamf-cli/pull/466)). Our own
+  tests covered two devices over a few hours and don't rule this out, and we
+  haven't tested a way to stop it. On a large fleet, use **Convert**, or start
+  with a small group.
 - **Keep as Installed hasn't been tested on iPad or Apple TV.** Testing covered
   macOS and one supervised iPhone, on one tenant, so start with a test group.
 
