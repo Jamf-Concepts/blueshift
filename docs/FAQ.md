@@ -24,6 +24,26 @@ No. One Jamf Account integration reaches both the Jamf Platform API and your Jam
 Pro tenant through the Jamf API gateway. See
 [How Blueshift works](HOW-IT-WORKS.md#one-integration-through-the-jamf-api-gateway).
 
+**What's the difference between Convert and Keep as Installed?**
+Convert builds a new blueprint beside the profile, so devices install something
+new and both manage the settings until you retire the original. Keep as Installed
+lets the blueprint take over the installed profile with no reinstall, but nothing
+becomes declarative. See
+[Keeping a profile as installed](HOW-IT-WORKS.md#keeping-a-profile-as-installed).
+
+**Jamf Pro logged a failed Remove Configuration Profile. Did something break?**
+Not if you've just retired a profile kept as installed. The device has adopted it,
+so it refuses MDM's command and keeps the settings.
+
+**Can I undeploy a blueprint that kept a profile as installed?**
+Be careful. With the original retired, undeploying removes the profile and its
+settings from devices. With the original still scoped, Jamf Pro reinstalls it at
+the next inventory update, and the settings are missing until then.
+
+**Does Keep as Installed work on iPhone?**
+It worked on a supervised iPhone on iOS 26.6 and 27.2. iPad and Apple TV haven't been
+tested, so start with a test group.
+
 **What does Blueshift send, and where?**
 Every request goes to the Jamf API gateway for your region
 (`{us|eu|apac}.api.jamfcloud.com`). When an editor needs the schema for a

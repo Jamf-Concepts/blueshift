@@ -1,5 +1,10 @@
 # Blueshift
 
+> **New since 1.7.11:** **Keep as Installed** lets a blueprint take over a profile
+> with no reinstall. Retiring an original now needs a confirmed rollout on every
+> route. 1.7.14 also warns about failed commands on large fleets, and fixes a
+> stray error when scrolling Profiles and the mobile **Open in Jamf Pro** link.
+
 > **This repository contains no source code.** It hosts documentation, release
 > builds and the issue tracker for Blueshift. Compiled builds are published
 > under [Releases](https://github.com/Jamf-Concepts/blueshift/releases).
@@ -22,6 +27,8 @@ original so two things never manage the same settings.
 | ![Create Blueprint](docs/screenshots/migrate-scope.png) **Create Blueprint** — the scope compared line by line, with a recommendation. | ![Smart group](docs/screenshots/migrate-smartgroup.png) **Build a smart group** — one group that says what the whole scope said. |
 | ![Blueprints](docs/screenshots/blueprints.png) **Blueprints** — scope, contents and per-device rollout. | ![Migrations](docs/screenshots/migrations.png) **Migrations** — what moved, and what is left to retire. |
 
+| ![Keep as Installed](docs/screenshots/migrate-keep.png) **Keep as Installed** — devices keep the profile, and the blueprint takes it over. | ![Retire a kept profile](docs/screenshots/retire-kept.png) **Retire** — what to expect before an adopted profile's original goes. |
+
 More screenshots: [Devices](docs/screenshots/devices.png) ·
 [Activity](docs/screenshots/activity.png) ·
 [Payload Registry](docs/screenshots/registry.png) ·
@@ -38,11 +45,16 @@ More screenshots: [Devices](docs/screenshots/devices.png) ·
 - **Migrate one or many.** macOS, iOS and iPadOS profiles, from Jamf Pro or a
   `.mobileconfig` on disk. Passcode, Safari, software-update and Rapid Security
   Response settings become native declarative components.
+- **Keep a profile as installed.** Instead of converting it, let the blueprint
+  take the profile over where it is, with no reinstall and no gap on devices. See
+  [Keeping a profile as installed](docs/HOW-IT-WORKS.md#keeping-a-profile-as-installed).
 - **Carry the scope across.** Every target, limitation and exclusion is compared
   with what a blueprint can express, and Blueshift can build one smart group
   that covers the rest.
 - **Retire the original.** Rename and unscope it (the default) or delete it, so
-  the old profile stops managing the same settings.
+  the old profile stops managing the same settings. Blueshift refuses to unscope
+  or delete it until the blueprint's rollout confirms it: deployed, with none
+  failed or pending.
 - **Work as a team.** Every blueprint records who migrated it and which profile
   it replaced, so every admin sees the same picture.
 
@@ -80,8 +92,9 @@ Jamf Pro API client or password to set up.
 Then migrate:
 
 1. **Profiles** — select a profile and review its verdicts and scope.
-2. **Create Blueprint** — check the name, description and scope comparison;
-   use the recommended groups or build a smart group; click **Create**.
+2. **Create Blueprint** — choose **Convert** or **Keep as Installed**; check the
+   name, description and scope comparison; use the recommended groups or build a
+   smart group; click **Create**.
 3. **Migrations** — once the blueprint is proven, **Retire the original
    profile**.
 
@@ -105,7 +118,7 @@ optional one only switches off the feature that needs it.
 | Configuration Profiles — Delete | Optional — deleting an original outright | `DELETE proclassic/…/id/{id}` |
 | Device Groups — Create | Optional — **Build a smart group** | `POST device-groups/v1/device-groups` |
 | Jamf Pro Server URL — Read | Optional — **Open in Jamf Pro** links | `GET pro/v1/jamf-pro-server-url` |
-| Computer Inventory — Read | Optional — records which Mac and user ran a migration | `GET pro/v1/computers-inventory` |
+| Computer Inventory — Read | Optional — records which Mac and user ran a migration | `GET pro/v4/computers-inventory` |
 | Departments — Read | Optional — your department in blueprint descriptions | `GET pro/v1/departments/{id}` |
 | Blueprints — Deploy | Optional — the Deploy and Undeploy buttons; migrating never deploys | `POST …/blueprints/{id}/deploy` |
 | Blueprints — Delete | Optional — **Undo** straight after a migration | `DELETE …/blueprints/{id}` |
@@ -127,6 +140,9 @@ The same list, with a **Copy Permission List** button, is behind the **?** in
 | A blueprint fails with `VALIDATION_FAILURE` | Open **Payload Registry → Re-check against this tenant** and migrate again. If the API names a missing key, Blueshift offers to re-send that payload as managed preferences. |
 | A profile shows as **Unreadable** | It is signed, empty or not a property list. Export it unsigned and drag it in. |
 | Blueprint scope will not save | Every blueprint needs at least one device group — the Platform API refuses an empty scope. |
+
+| Retiring a profile says **Not yet** | The blueprint isn't deployed, reports no devices, or has devices failed or pending. Deploy it and wait until nothing is failed or pending |
+| A failed **Remove Configuration Profile** after retiring a kept profile | The device keeps the profile and its settings. See **Known gaps** |
 
 More answers: [FAQ](docs/FAQ.md).
 
@@ -154,6 +170,13 @@ method, path, status, timing and size — never bodies or credentials.
   you can decide.
 - **A blueprint with no components cannot be edited through the API.** Add its
   contents in Jamf Pro first.
+- **Keep as Installed needs care.** Make sure the blueprint's groups cover the
+  profile's whole scope before retiring the original, and don't undeploy the
+  blueprint afterwards: devices it no longer manages lose the settings. Jamf Pro
+  can also keep sending devices a Remove command they refuse, so failed commands
+  can pile up on a large fleet. Use **Convert** there, or start with a small group.
+  It hasn't been tested on iPad or Apple TV. See
+  [Keeping a profile as installed](docs/HOW-IT-WORKS.md#keeping-a-profile-as-installed).
 
 ## More
 
