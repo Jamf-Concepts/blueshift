@@ -1,5 +1,10 @@
 # Blueshift
 
+> **New since 1.7.11:** **Keep as Installed** lets a blueprint take over a profile
+> with no reinstall. Retiring an original now needs a confirmed rollout on every
+> route. 1.7.14 also warns about failed commands on large fleets, and fixes a
+> stray error when scrolling Profiles and the mobile **Open in Jamf Pro** link.
+
 > **This repository contains no source code.** It hosts documentation, release
 > builds and the issue tracker for Blueshift. Compiled builds are published
 > under [Releases](https://github.com/Jamf-Concepts/blueshift/releases).
