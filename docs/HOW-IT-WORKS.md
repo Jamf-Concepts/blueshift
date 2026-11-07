@@ -201,10 +201,8 @@ on any Mac recognises the blueprint as a migration.
 
 **Convert is the default, and the right choice for a large fleet.** A kept profile
 has the same identity as its original, so once the original is unscoped or deleted
-Jamf Pro sends each device a Remove command it refuses, and can keep retrying. One
-customer fleet reached over 100,000 failed commands
-([jamf-cli #466](https://github.com/Jamf-Concepts/jamf-cli/pull/466)). Blueshift
-warns about this, and can't prevent it.
+Jamf Pro sends each device a Remove command it refuses, and can keep retrying, so
+failed commands can pile up. Blueshift warns about this, and can't prevent it.
 
 **Convert** builds a new blueprint beside the profile, so devices install
 something new. **Keep as Installed** uses Apple's transition from MDM: when the

@@ -41,12 +41,7 @@ More screenshots: [Devices](docs/screenshots/devices.png) ·
   `.mobileconfig` on disk. Passcode, Safari, software-update and Rapid Security
   Response settings become native declarative components.
 - **Keep a profile as installed.** Instead of converting it, let the blueprint
-  take the profile over where it is, using Apple's transition from MDM: no
-  reinstall and no gap on devices. Blueshift checks the profile qualifies, reads
-  the blueprint back, and won't retire the original until the blueprint has
-  succeeded with none failed or pending. It can't see devices outside the
-  blueprint's groups, so it warns you to check they cover the profile's scope.
-  Tested on macOS and on a supervised iPhone; see
+  take the profile over where it is, with no reinstall and no gap on devices. See
   [Keeping a profile as installed](docs/HOW-IT-WORKS.md#keeping-a-profile-as-installed).
 - **Carry the scope across.** Every target, limitation and exclusion is compared
   with what a blueprint can express, and Blueshift can build one smart group
@@ -142,9 +137,7 @@ The same list, with a **Copy Permission List** button, is behind the **?** in
 | Blueprint scope will not save | Every blueprint needs at least one device group — the Platform API refuses an empty scope. |
 
 | Retiring a profile says **Not yet** | The blueprint isn't deployed, reports no devices, or has devices failed or pending. Deploy it and wait until nothing is failed or pending |
-| A failed **Remove Configuration Profile** after retiring a kept profile | The device has adopted the profile and keeps its settings, but these commands can be retried and pile up on a large fleet. See **Known gaps** |
-| A failed **Install Configuration Profile** after renaming a kept profile | Expected. The device keeps its name until the blueprint next updates the profile |
-| **Keep as Installed** is greyed out | The reason is listed under it. Use **Convert** |
+| A failed **Remove Configuration Profile** after retiring a kept profile | The device keeps the profile and its settings. See **Known gaps** |
 
 More answers: [FAQ](docs/FAQ.md).
 
@@ -172,26 +165,13 @@ method, path, status, timing and size — never bodies or credentials.
   you can decide.
 - **A blueprint with no components cannot be edited through the API.** Add its
   contents in Jamf Pro first.
-- **Not every profile can be kept as installed.** A payload whose `PayloadUUID`
-  differs from its `PayloadIdentifier`, or a type the API refuses, can't be
-  adopted. Blueshift names the reason. Editing an adopted profile later changes
-  its top-level UUID and install date on devices, though it stays one profile,
-  and any setting the API dropped when the blueprint was created disappears then.
-- **A kept profile's blueprint must cover its whole scope before you retire it.**
-  Blueshift only sees the devices in the blueprint's groups, so it warns rather
-  than checks. A device outside them loses the profile and its settings.
-- **Undeploying a kept profile leaves a gap.** With the original still scoped,
-  Jamf Pro reinstalls it only at the next inventory update. With the original
-  retired, the settings are gone.
-- **Keep as Installed can flood a large fleet with failed commands.** Once the
-  original is unscoped or deleted, Jamf Pro sends each device a Remove command it
-  refuses, and can keep retrying. One customer fleet reached over 100,000
-  ([jamf-cli #466](https://github.com/Jamf-Concepts/jamf-cli/pull/466)). Our own
-  tests covered two devices over a few hours and don't rule this out, and we
-  haven't tested a way to stop it. On a large fleet, use **Convert**, or start
-  with a small group.
-- **Keep as Installed hasn't been tested on iPad or Apple TV.** Testing covered
-  macOS and one supervised iPhone, on one tenant, so start with a test group.
+- **Keep as Installed needs care.** Make sure the blueprint's groups cover the
+  profile's whole scope before retiring the original, and don't undeploy the
+  blueprint afterwards: devices it no longer manages lose the settings. Jamf Pro
+  can also keep sending devices a Remove command they refuse, so failed commands
+  can pile up on a large fleet. Use **Convert** there, or start with a small group.
+  It hasn't been tested on iPad or Apple TV. See
+  [Keeping a profile as installed](docs/HOW-IT-WORKS.md#keeping-a-profile-as-installed).
 
 ## More
 
