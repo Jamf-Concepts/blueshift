@@ -217,6 +217,10 @@ analytics**. It takes effect from the next launch.
 See [Jamf's Privacy Policy](https://www.jamf.com/trust-center/privacy/privacy-policy/)
 for information on data handling.
 
+## Thank you
+
+Thanks to Jordy Thery for [Profile2Blueprint](https://github.com/JordyThery/Profile2Blueprint) and his feedback, which shaped **Keep as Installed**.
+
 ## Where to get help
 
 If you encounter a bug or have a feature request, please open an issue via
