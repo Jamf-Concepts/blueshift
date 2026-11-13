@@ -5,7 +5,7 @@
 > original until it has; **Dry Run** does everything against a real tenant with
 > nothing changed, while the Jamf API still validates each blueprint; a
 > **reminder before the client secret expires**; reports in PDF, Excel and CSV;
-> and **Terraform export** for teams that manage Jamf as code. Also new: account,
+> and **Terraform export** for teams that manage Jamf as code, for one blueprint or several at once. Also new: account,
 > DNS, VPN, content filter and Extensible SSO profiles move as Apple's
 > declarations; Energy Saver and other Jamf Pro MCX settings no longer show as
 > Wrapped; and **Check for Updates**.
@@ -198,6 +198,22 @@ method, path, status, timing and size — never bodies or credentials.
   can pile up on a large fleet. Use **Convert** there, or start with a small group.
   It hasn't been tested on iPad or Apple TV. See
   [Keeping a profile as installed](docs/HOW-IT-WORKS.md#keeping-a-profile-as-installed).
+
+## What's new
+
+| Version | What's new |
+|---|---|
+| **1.8.0** | Migration Evidence, Dry Run, reports in PDF, Excel and CSV, Terraform export, a secret expiry reminder, more profiles moved as Apple's declarations, and Check for Updates. |
+| 1.7.14 | Built, signed and notarised by Jamf, with a disk image. |
+| 1.7.13 | Keep as Installed: the blueprint takes over the profile already on each device. |
+| 1.7.11 | Edit in Jamf Pro; a blueprint is never scoped more broadly than its profile. |
+| 1.7.0 – 1.7.10 | Scope compared line by line, with a smart group built to match. |
+| 1.6 | One credential, through the Jamf API gateway. |
+| 1.3 – 1.5 | Readiness report, keyboard navigation, faster launch. |
+| 1.1 – 1.2 | Batch migration; edit settings as plists. |
+| 1.0 | First release. |
+
+The full list is in each [release](https://github.com/Jamf-Concepts/blueshift/releases).
 
 ## More
 
