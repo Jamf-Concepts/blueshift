@@ -32,8 +32,9 @@ original so two things never manage the same settings.
 | ![Overview](docs/screenshots/overview.png) **Overview** — where the migration stands, and the next step. | ![Profiles](docs/screenshots/profiles.png) **Profiles** — every profile, its scope, and what each payload becomes. |
 | ![Create Blueprint](docs/screenshots/migrate-scope.png) **Create Blueprint** — the scope compared line by line, with a recommendation. | ![Smart group](docs/screenshots/migrate-smartgroup.png) **Build a smart group** — one group that says what the whole scope said. |
 | ![Blueprints](docs/screenshots/blueprints.png) **Blueprints** — scope, contents and per-device rollout. | ![Migrations](docs/screenshots/migrations.png) **Migrations** — what moved, and what is left to retire. |
-
 | ![Keep as Installed](docs/screenshots/migrate-keep.png) **Keep as Installed** — devices keep the profile, and the blueprint takes it over. | ![Retire a kept profile](docs/screenshots/retire-kept.png) **Retire** — what to expect before an adopted profile's original goes. |
+| ![Migration Evidence](docs/screenshots/evidence.png) **Migration Evidence** — every device that had the profile, checked against the blueprint. | ![Devices](docs/screenshots/profile-devices.png) **Before migrating** — who has the profile, and who its scope reaches. |
+| ![Dry Run](docs/screenshots/dry-run.png) **Dry Run** — Jamf's API checks the blueprint, and nothing is created. | ![Export several](docs/screenshots/blueprints-export.png) **Export several** — one report or one Terraform file for the blueprints you select. |
 
 More screenshots: [Devices](docs/screenshots/devices.png) ·
 [Activity](docs/screenshots/activity.png) ·
@@ -69,6 +70,12 @@ More screenshots: [Devices](docs/screenshots/devices.png) ·
   a resource for Jamf's Terraform provider (`jamf/jamfplatform`), or as the raw
   API request, instead of letting Blueshift create it. Existing blueprints come
   with an `import` block.
+- **Export reports.** Pre-migration and migration evidence for a profile, a
+  report for any set of blueprints you select, or the whole fleet, as PDF,
+  Excel or CSV.
+- **Stay ahead of an expiring secret.** Record when the API client's secret
+  expires; the Overview reminds you beforehand, and an expired secret is named
+  as such instead of a generic sign-in failure.
 - **Retire the original.** Rename and unscope it (the default) or delete it, so
   the old profile stops managing the same settings. Blueshift refuses to unscope
   or delete it until the blueprint's rollout confirms it: deployed, with none
