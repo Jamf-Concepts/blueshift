@@ -268,20 +268,20 @@ rules, because retiring it on a device that hasn't adopted it removes its settin
 A blueprint's report gives counts. Evidence answers the question that matters
 before retiring a profile: *did the blueprint reach every device that had it?*
 
-**Baseline.** Just before a blueprint is created (one profile or a batch),
+**Check Profile.** Just before a blueprint is created (one profile or a batch),
 Blueshift reads Jamf Pro inventory and records which devices list the profile,
 matched by its PayloadIdentifier or UUID (by name only when neither is known,
 and flagged). It also resolves the profile's scope to devices: computers,
 groups, buildings, departments and users, minus exclusions. Limitations, user
 groups, network segments and iBeacons can't be resolved from inventory, so a
-scope that uses them is marked approximate. **Check Devices** on a profile
-takes a baseline any time.
+scope that uses them is marked approximate. **Check Profile** on a profile
+does the same any time.
 
-Baselines are evidence, so each capture is a new file, never rewritten:
+Each profile check is kept as a new file, never rewritten:
 `~/Library/Containers/com.jamf.blueshift/Data/Library/Application Support/Blueshift/Evidence/<environment>/<type>-<id>/`.
-Verification uses the latest capture taken before the migration.
+Check Blueprint uses the latest profile check taken before the migration.
 
-**Verification.** Every device in the baseline is matched by serial number to
+**Check Blueprint.** Every device that had the profile is matched by serial number to
 the blueprint's per-device declaration status and to current inventory:
 
 | Verdict | Meaning | Blocks retiring |
@@ -294,10 +294,10 @@ the blueprint's per-device declaration status and to current inventory:
 | Inventory not updated | Inventory predates the retirement | No |
 | New device | In the blueprint's scope, never had the profile | No |
 
-The retire gate runs this check after the count check. Migrations without a
-baseline (before 1.8) keep the count check alone.
+The retire gate runs this check after the count check. Migrations whose
+profile wasn't checked first (before 1.8) keep the count check alone.
 
-**Reports.** Each Evidence or baseline exports as PDF, Excel (.xlsx) or CSV.
+**Reports.** Each Evidence or profile check exports as PDF, Excel (.xlsx) or CSV.
 **File ▸ Export Pre-Migration Report** lists every profile with who has it and
 who its scope reaches; **Export Migration Report** lists every migration with
 its evidence, plus a sheet of every device line. Cells a spreadsheet would run

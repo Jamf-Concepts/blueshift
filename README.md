@@ -59,7 +59,7 @@ More screenshots: [Devices](docs/screenshots/devices.png) ·
   with what a blueprint can express, and Blueshift can build one smart group
   that covers the rest.
 - **Prove it, device by device.** Before migrating, Blueshift records which
-  devices have the profile. Afterwards, **Verify Devices** checks each one
+  devices have the profile. Afterwards, **Check Blueprint** checks each one
   against the blueprint by serial number: verified, pending, failed, or **not
   covered** (had the profile, but the blueprint doesn't reach it). Export the
   evidence as PDF, Excel or CSV.
