@@ -33,7 +33,7 @@ gets a verdict before anything is sent:
 |---|---|
 | **Native DDM** | Promoted to a declarative component — applies without a profile install, reports status back |
 | **Supported** | In the registry; passes through inside a configuration-profile component |
-| **Wrapped** | Not in the registry; delivered as managed preferences instead, settings preserved |
+| **Wrapped** | Not in the registry; delivered as managed preferences instead, settings preserved. Apple payloads that aren't preference domains (accounts, say) are never wrapped: they move as declarations or are blocked |
 | **Blocked** | Explicitly refused. It would reject the *entire* blueprint, so Blueshift leaves it out and says so |
 
 The verdicts roll up into one readiness per profile, which the Overview counts
@@ -286,6 +286,63 @@ union of facts — the earliest known timestamp wins for each field — so it is
 order-independent and repeatable. The ledger is backed up automatically before
 anything rewrites it (**File ▸ Show Backups in Finder**).
 
+## Declarations for newer OS versions
+
+Blueprints refuses some profile payloads outright, and Apple replaced others
+with declarations in macOS and iOS 26.4 and 27. Blueshift sends these as
+**Custom Declarations**, mapping keys from Apple's schemas
+([apple/device-management](https://github.com/apple/device-management),
+Release-v27.2; `Tools/schema/generate.py` regenerates the table).
+
+| Profile payload | Becomes | Needs |
+|---|---|---|
+| CalDAV, CardDAV, subscribed calendar, LDAP, Mail, Exchange (EAS, EWS) | Account declarations, user channel | macOS 13, iOS 15 |
+| Extensible SSO | Extensible SSO declaration | macOS and iOS 27 |
+| DNS Settings | `network.dns-settings` | macOS and iOS 27 |
+| VPN: IKEv2 with no machine authentication, VPN app with a password | `network.vpn.ikev2`, `network.vpn.vpn-plugin` | macOS and iOS 27 |
+| Web content filter, filter app | `webcontent-filter.plugin` | macOS and iOS 27 |
+| DNS Proxy, Relay, Content Caching | Their declarations on **Upgrade**; kept as profiles by default, since the profile still works everywhere | 27 |
+| Apple Intelligence and keyboard restrictions | `intelligence.settings`, `keyboard.settings`, on opt-in; the rest of Restrictions stays | 26.4 |
+
+On a Mac on macOS 27.3 (2026-11-12), these reported successful: the Mail,
+CalDAV, CardDAV, LDAP, subscribed-calendar and Exchange (EWS) accounts, Extensible
+SSO, DNS Settings, an IKEv2 VPN, Content Caching, and the Apple Intelligence and
+keyboard declarations. Not yet tested on a device: DNS Proxy and Relay as
+declarations, the VPN app and filter app (they need the vendor's app), and iOS.
+
+**What never moves.** Passwords, shared secrets and certificates: a declaration
+takes them only as assets, which Blueshift can't create. Accounts ask the user to
+sign in instead. A VPN needing a secret or certificate, IPSec, weak IKE
+algorithms, a VPN app whose settings don't fit the declaration's four
+`VendorConfig` keys (Jamf Trust, for example), and Apple's built-in content
+filter are blocked with the reason, because they would deploy and not work.
+
+**Where it applies.** Each payload shows where Apple supports it. A payload in a
+profile for the wrong kind of device is marked **Wrong platform**; one Apple has
+deprecated or removed says so (macOS 27 deprecates DNS Settings, DNS Proxy,
+Relay, Passcode and Content Caching profiles, and removes Software Update).
+**Create Blueprint** counts the devices in the chosen groups that are below a
+declaration's minimum OS and adds that floor to the suggested activation
+condition.
+
+**Jamf Pro variables.** Jamf Pro fills in `$EMAIL`, `$UDID` and the like for
+profiles. Nothing confirms Blueprints does inside a custom declaration, so any
+declaration carrying one is flagged for a check on a test device.
+
+## Settings the API drops
+
+Inside a configuration-profile component, the blueprints API keeps only the
+keys Apple's schema defines for the payload and drops the rest without an error
+(live, 2026-11-12: the Dock's `contents-immutable` stays, but
+`show-process-indicators-immutable` and Finder's `InterfaceLevel` go). The same
+keys inside a Managed Preferences wrapper all survive, so Blueshift sends
+out-of-schema keys beside the payload as managed preferences for the same
+domain. Jamf Pro's `-ProfileNumber` bookkeeping keys are left out.
+
+Keys inside a group can't travel separately. A profile made in Jamf Pro's
+Energy Saver UI writes `Sleep On Power Button` and `Disk Sleep Timer-boolean` in
+each power group; the API drops both, and Blueshift names them.
+
 ## Where legacy and declarative genuinely disagree
 
 - **Passcode policies that constrain without forcing.** The declarative
@@ -297,8 +354,26 @@ anything rewrites it (**File ▸ Show Backups in Finder**).
   the whole blueprint. They manage nothing either way, so they are dropped and
   reported.
 - **Missing required keys.** A payload in the registry can still be refused for
-  a key it lacks (`com.apple.screensaver` without `moduleName`). These name the
-  payload, so Blueshift offers to re-send it as managed preferences.
+  a key it lacks. `com.apple.screensaver` without `moduleName` is known, so it is
+  sent as managed preferences from the start. Others name the payload when the
+  API refuses them, and Blueshift offers to re-send it as managed preferences.
+- **One payload type, several settings.** Jamf Pro writes Energy Saver, Date &
+  Time, Accounts and Mobile Accounts all as `com.apple.MCX`. The API refuses that
+  spelling and takes each group by name (`com.apple.MCX.EnergySaver` and so on),
+  without checking which keys travel under which name. Blueshift sorts the keys
+  into their groups and sends each under its own name. FileVault keys are refused
+  by the API; Wi-Fi keys have no name it takes, so they stay managed preferences.
+  Keep as Installed can't rename a type, so these profiles use Convert.
+  Energy Saver values stay on a Mac after the payload is removed, whether the
+  profile is retired or the blueprint undeployed (checked on macOS 26.6), so
+  set the values you want back before removing it.
+- **Extensible SSO.** The API refuses the `com.apple.extensiblesso` payload, but
+  takes Apple's `com.apple.configuration.extensible-sso` declaration as a custom
+  declaration. Blueshift maps the payload onto it, Platform SSO included (macOS
+  only), and checks it first, because the API doesn't check a custom
+  declaration's contents. It needs macOS, iOS, iPadOS or visionOS 27: an earlier
+  device reports "Unknown Declaration Type" and counts as failed, which also keeps
+  the retire check from removing the original profile it still relies on.
 
 ## The registry corrects itself
 

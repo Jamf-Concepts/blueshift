@@ -1,9 +1,11 @@
 # Blueshift
 
-> **New since 1.7.11:** **Keep as Installed** lets a blueprint take over a profile
-> with no reinstall. Retiring an original now needs a confirmed rollout on every
-> route. 1.7.14 also warns about failed commands on large fleets, and fixes a
-> stray error when scrolling Profiles and the mobile **Open in Jamf Pro** link.
+> **New in 1.7.15:** account, DNS, VPN, content filter and Extensible SSO profiles
+> move as Apple's declarations for macOS and iOS 27; each payload shows where Apple
+> supports it; settings the blueprints API would drop are kept or named; Energy
+> Saver and other Jamf Pro MCX settings no longer show as Wrapped; and
+> **Check for Updates** tells you when a new release is out.
+> See [How it works](docs/HOW-IT-WORKS.md#declarations-for-newer-os-versions).
 
 > **This repository contains no source code.** It hosts documentation, release
 > builds and the issue tracker for Blueshift. Compiled builds are published
