@@ -263,6 +263,71 @@ Jamf Pro** while it still exists.
 A profile [kept as installed](#keeping-a-profile-as-installed) follows stricter
 rules, because retiring it on a device that hasn't adopted it removes its settings.
 
+## Migration Evidence
+
+A blueprint's report gives counts. Evidence answers the question that matters
+before retiring a profile: *did the blueprint reach every device that had it?*
+
+**Baseline.** Just before a blueprint is created (one profile or a batch),
+Blueshift reads Jamf Pro inventory and records which devices list the profile,
+matched by its PayloadIdentifier or UUID (by name only when neither is known,
+and flagged). It also resolves the profile's scope to devices: computers,
+groups, buildings, departments and users, minus exclusions. Limitations, user
+groups, network segments and iBeacons can't be resolved from inventory, so a
+scope that uses them is marked approximate. **Check Devices** on a profile
+takes a baseline any time.
+
+Baselines are evidence, so each capture is a new file, never rewritten:
+`~/Library/Containers/com.jamf.blueshift/Data/Library/Application Support/Blueshift/Evidence/<environment>/<type>-<id>/`.
+Verification uses the latest capture taken before the migration.
+
+**Verification.** Every device in the baseline is matched by serial number to
+the blueprint's per-device declaration status and to current inventory:
+
+| Verdict | Meaning | Blocks retiring |
+|---|---|---|
+| Verified | Blueprint applied; after retiring, original gone (Convert) or still present (Keep as Installed) | No |
+| Pending | Blueprint not reported yet | Yes |
+| Failed | Blueprint failed on the device | Yes |
+| Not covered | Device had the profile but isn't in the blueprint's scope | Yes |
+| Original still installed | Converted and retired, fresh inventory still lists the original | No (already retired) |
+| Inventory not updated | Inventory predates the retirement | No |
+| New device | In the blueprint's scope, never had the profile | No |
+
+The retire gate runs this check after the count check. Migrations without a
+baseline (before 1.8) keep the count check alone.
+
+**Reports.** Each Evidence or baseline exports as PDF, Excel (.xlsx) or CSV.
+**File ▸ Export Pre-Migration Report** lists every profile with who has it and
+who its scope reaches; **Export Migration Report** lists every migration with
+its evidence, plus a sheet of every device line. Cells a spreadsheet would run
+as a formula are neutralised.
+
+## Dry Run
+
+Dry Run is enforced where every request leaves the app, not in the views: the
+two functions all Jamf traffic passes through answer any write locally and
+record it. `Tools/verify.sh` fails the build if any request path skips them.
+
+Creating a blueprint is the exception that makes Dry Run useful: the real
+request is sent with an extra component the API always refuses (a blank
+display name, the same marker the registry probe uses). The API validates the
+whole request and rejects it, so nothing is created. If the marker is the only
+error, the real request would be accepted; anything else is the API's own
+rejection, shown as it would be live. A smart group invented earlier in the
+same Dry Run is swapped for a real group while validating.
+
+Simulated blueprints and migrations stay in memory. The ledger, the shared
+folder and the launch snapshot are never written while Dry Run is on, and
+turning it off discards everything it simulated.
+
+## Client secret expiry
+
+No Jamf Platform API returns an integration's expiry date, so it's entered
+once in Connections. It's stored per environment and client ID, warns in the
+main window inside the chosen reminder window, and turns a refused secret after
+that date into an "expired" message.
+
 ## Working as a team
 
 **Which profiles have been migrated is shared automatically.** Every blueprint

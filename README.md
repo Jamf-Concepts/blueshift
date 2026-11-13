@@ -1,11 +1,15 @@
 # Blueshift
 
-> **New in 1.7.15:** account, DNS, VPN, content filter and Extensible SSO profiles
-> move as Apple's declarations for macOS and iOS 27; each payload shows where Apple
-> supports it; settings the blueprints API would drop are kept or named; Energy
-> Saver and other Jamf Pro MCX settings no longer show as Wrapped; and
-> **Check for Updates** tells you when a new release is out.
-> See [How it works](docs/HOW-IT-WORKS.md#declarations-for-newer-os-versions).
+> **New in 1.8.0:** **Migration Evidence** checks, device by device, that a
+> blueprint reached every device that had the profile, and won't retire the
+> original until it has; **Dry Run** does everything against a real tenant with
+> nothing changed, while the Jamf API still validates each blueprint; a
+> **reminder before the client secret expires**; reports in PDF, Excel and CSV;
+> and **Terraform export** for teams that manage Jamf as code. Also new: account,
+> DNS, VPN, content filter and Extensible SSO profiles move as Apple's
+> declarations; Energy Saver and other Jamf Pro MCX settings no longer show as
+> Wrapped; and **Check for Updates**.
+> See [How it works](docs/HOW-IT-WORKS.md#migration-evidence).
 
 > **This repository contains no source code.** It hosts documentation, release
 > builds and the issue tracker for Blueshift. Compiled builds are published
@@ -53,10 +57,22 @@ More screenshots: [Devices](docs/screenshots/devices.png) ·
 - **Carry the scope across.** Every target, limitation and exclusion is compared
   with what a blueprint can express, and Blueshift can build one smart group
   that covers the rest.
+- **Prove it, device by device.** Before migrating, Blueshift records which
+  devices have the profile. Afterwards, **Verify Devices** checks each one
+  against the blueprint by serial number: verified, pending, failed, or **not
+  covered** (had the profile, but the blueprint doesn't reach it). Export the
+  evidence as PDF, Excel or CSV.
+- **Rehearse with Dry Run.** Do everything against production with nothing
+  changed. Every write is stopped and listed, and blueprint creates are still
+  validated by the Jamf API, without being created.
+- **Hand it to Terraform.** Export any blueprint, a batch, or every migration as
+  a resource for Jamf's Terraform provider (`jamf/jamfplatform`), or as the raw
+  API request, instead of letting Blueshift create it. Existing blueprints come
+  with an `import` block.
 - **Retire the original.** Rename and unscope it (the default) or delete it, so
   the old profile stops managing the same settings. Blueshift refuses to unscope
   or delete it until the blueprint's rollout confirms it: deployed, with none
-  failed or pending.
+  failed or pending, and every device that had the profile verified.
 - **Work as a team.** Every blueprint records who migrated it and which profile
   it replaced, so every admin sees the same picture.
 
@@ -120,8 +136,11 @@ optional one only switches off the feature that needs it.
 | Configuration Profiles — Delete | Optional — deleting an original outright | `DELETE proclassic/…/id/{id}` |
 | Device Groups — Create | Optional — **Build a smart group** | `POST device-groups/v1/device-groups` |
 | Jamf Pro Server URL — Read | Optional — **Open in Jamf Pro** links | `GET pro/v1/jamf-pro-server-url` |
-| Computer Inventory — Read | Optional — records which Mac and user ran a migration | `GET pro/v4/computers-inventory` |
-| Departments — Read | Optional — your department in blueprint descriptions | `GET pro/v1/departments/{id}` |
+| Computer Inventory — Read | Optional — Migration Evidence for Macs; records which Mac and user ran a migration | `GET pro/v4/computers-inventory` |
+| Mobile Device Inventory — Read | Optional — Migration Evidence for mobile devices | `GET pro/v2/mobile-devices/detail` |
+| Computer Groups — Read | Optional — Evidence lists devices a Mac profile's scope reaches | `GET proclassic/computergroups/name/{name}` |
+| Mobile Device Groups — Read | Optional — the same for mobile profiles | `GET proclassic/mobiledevicegroups/name/{name}` |
+| Buildings — Read, Departments — Read | Optional — Evidence resolves scope by building or department; your department in blueprint descriptions | `GET pro/v1/buildings`, `pro/v1/departments` |
 | Blueprints — Deploy | Optional — the Deploy and Undeploy buttons; migrating never deploys | `POST …/blueprints/{id}/deploy` |
 | Blueprints — Delete | Optional — **Undo** straight after a migration | `DELETE …/blueprints/{id}` |
 | Blueprint Components — Read | Optional — the declarative catalogue and OS minimums | `GET …/blueprint-components` |
