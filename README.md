@@ -1,9 +1,15 @@
 # Blueshift
 
-> **New since 1.7.11:** **Keep as Installed** lets a blueprint take over a profile
-> with no reinstall. Retiring an original now needs a confirmed rollout on every
-> route. 1.7.14 also warns about failed commands on large fleets, and fixes a
-> stray error when scrolling Profiles and the mobile **Open in Jamf Pro** link.
+> **New in 1.8.0:** **Migration Evidence** checks, device by device, that a
+> blueprint reached every device that had the profile, and won't retire the
+> original until it has; **Dry Run** does everything against a real tenant with
+> nothing changed, while the Jamf API still validates each blueprint; a
+> **reminder before the client secret expires**; reports in PDF, Excel and CSV;
+> and **Terraform export** for teams that manage Jamf as code, for one blueprint or several at once. Also new: account,
+> DNS, VPN, content filter and Extensible SSO profiles move as Apple's
+> declarations; Energy Saver and other Jamf Pro MCX settings no longer show as
+> Wrapped; and **Check for Updates**.
+> See [How it works](docs/HOW-IT-WORKS.md#migration-evidence).
 
 > **This repository contains no source code.** It hosts documentation, release
 > builds and the issue tracker for Blueshift. Compiled builds are published
@@ -26,8 +32,9 @@ original so two things never manage the same settings.
 | ![Overview](docs/screenshots/overview.png) **Overview** — where the migration stands, and the next step. | ![Profiles](docs/screenshots/profiles.png) **Profiles** — every profile, its scope, and what each payload becomes. |
 | ![Create Blueprint](docs/screenshots/migrate-scope.png) **Create Blueprint** — the scope compared line by line, with a recommendation. | ![Smart group](docs/screenshots/migrate-smartgroup.png) **Build a smart group** — one group that says what the whole scope said. |
 | ![Blueprints](docs/screenshots/blueprints.png) **Blueprints** — scope, contents and per-device rollout. | ![Migrations](docs/screenshots/migrations.png) **Migrations** — what moved, and what is left to retire. |
-
 | ![Keep as Installed](docs/screenshots/migrate-keep.png) **Keep as Installed** — devices keep the profile, and the blueprint takes it over. | ![Retire a kept profile](docs/screenshots/retire-kept.png) **Retire** — what to expect before an adopted profile's original goes. |
+| ![Migration Evidence](docs/screenshots/evidence.png) **Migration Evidence** — every device that had the profile, checked against the blueprint. | ![Devices](docs/screenshots/profile-devices.png) **Before migrating** — who has the profile, and who its scope reaches. |
+| ![Dry Run](docs/screenshots/dry-run.png) **Dry Run** — Jamf's API checks the blueprint, and nothing is created. | ![Export several](docs/screenshots/blueprints-export.png) **Export several** — one report or one Terraform file for the blueprints you select. |
 
 More screenshots: [Devices](docs/screenshots/devices.png) ·
 [Activity](docs/screenshots/activity.png) ·
@@ -51,10 +58,28 @@ More screenshots: [Devices](docs/screenshots/devices.png) ·
 - **Carry the scope across.** Every target, limitation and exclusion is compared
   with what a blueprint can express, and Blueshift can build one smart group
   that covers the rest.
+- **Prove it, device by device.** Before migrating, Blueshift records which
+  devices have the profile. Afterwards, **Check Blueprint** checks each one
+  against the blueprint by serial number: verified, pending, failed, or **not
+  covered** (had the profile, but the blueprint doesn't reach it). Export the
+  evidence as PDF, Excel or CSV.
+- **Rehearse with Dry Run.** Do everything against production with nothing
+  changed. Every write is stopped and listed, and blueprint creates are still
+  validated by the Jamf API, without being created.
+- **Hand it to Terraform.** Export any blueprint, a batch, or every migration as
+  a resource for Jamf's Terraform provider (`jamf/jamfplatform`), or as the raw
+  API request, instead of letting Blueshift create it. Existing blueprints come
+  with an `import` block.
+- **Export reports.** Pre-migration and migration evidence for a profile, a
+  report for any set of blueprints you select, or the whole fleet, as PDF,
+  Excel or CSV.
+- **Stay ahead of an expiring secret.** Record when the API client's secret
+  expires; the Overview reminds you beforehand, and an expired secret is named
+  as such instead of a generic sign-in failure.
 - **Retire the original.** Rename and unscope it (the default) or delete it, so
   the old profile stops managing the same settings. Blueshift refuses to unscope
   or delete it until the blueprint's rollout confirms it: deployed, with none
-  failed or pending.
+  failed or pending, and every device that had the profile verified.
 - **Work as a team.** Every blueprint records who migrated it and which profile
   it replaced, so every admin sees the same picture.
 
@@ -118,8 +143,11 @@ optional one only switches off the feature that needs it.
 | Configuration Profiles — Delete | Optional — deleting an original outright | `DELETE proclassic/…/id/{id}` |
 | Device Groups — Create | Optional — **Build a smart group** | `POST device-groups/v1/device-groups` |
 | Jamf Pro Server URL — Read | Optional — **Open in Jamf Pro** links | `GET pro/v1/jamf-pro-server-url` |
-| Computer Inventory — Read | Optional — records which Mac and user ran a migration | `GET pro/v4/computers-inventory` |
-| Departments — Read | Optional — your department in blueprint descriptions | `GET pro/v1/departments/{id}` |
+| Computer Inventory — Read | Optional — Migration Evidence for Macs; records which Mac and user ran a migration | `GET pro/v4/computers-inventory` |
+| Mobile Device Inventory — Read | Optional — Migration Evidence for mobile devices | `GET pro/v2/mobile-devices/detail` |
+| Computer Groups — Read | Optional — Evidence lists devices a Mac profile's scope reaches | `GET proclassic/computergroups/name/{name}` |
+| Mobile Device Groups — Read | Optional — the same for mobile profiles | `GET proclassic/mobiledevicegroups/name/{name}` |
+| Buildings — Read, Departments — Read | Optional — Evidence resolves scope by building or department; your department in blueprint descriptions | `GET pro/v1/buildings`, `pro/v1/departments` |
 | Blueprints — Deploy | Optional — the Deploy and Undeploy buttons; migrating never deploys | `POST …/blueprints/{id}/deploy` |
 | Blueprints — Delete | Optional — **Undo** straight after a migration | `DELETE …/blueprints/{id}` |
 | Blueprint Components — Read | Optional — the declarative catalogue and OS minimums | `GET …/blueprint-components` |
@@ -178,6 +206,22 @@ method, path, status, timing and size — never bodies or credentials.
   It hasn't been tested on iPad or Apple TV. See
   [Keeping a profile as installed](docs/HOW-IT-WORKS.md#keeping-a-profile-as-installed).
 
+## What's new
+
+| Version | What's new |
+|---|---|
+| **1.8.0** | Migration Evidence, Dry Run, reports in PDF, Excel and CSV, Terraform export, a secret expiry reminder, more profiles moved as Apple's declarations, and Check for Updates. |
+| 1.7.14 | Built, signed and notarised by Jamf, with a disk image. |
+| 1.7.13 | Keep as Installed: the blueprint takes over the profile already on each device. |
+| 1.7.11 | Edit in Jamf Pro; a blueprint is never scoped more broadly than its profile. |
+| 1.7.0 – 1.7.10 | Scope compared line by line, with a smart group built to match. |
+| 1.6 | One credential, through the Jamf API gateway. |
+| 1.3 – 1.5 | Readiness report, keyboard navigation, faster launch. |
+| 1.1 – 1.2 | Batch migration; edit settings as plists. |
+| 1.0 | First release. |
+
+The full list is in each [release](https://github.com/Jamf-Concepts/blueshift/releases).
+
 ## More
 
 - [How Blueshift works](docs/HOW-IT-WORKS.md) — verdicts, readiness, scope and
@@ -216,6 +260,10 @@ analytics**. It takes effect from the next launch.
 
 See [Jamf's Privacy Policy](https://www.jamf.com/trust-center/privacy/privacy-policy/)
 for information on data handling.
+
+## Thank you
+
+Thanks to Jordy Thery for [Profile2Blueprint](https://github.com/JordyThery/Profile2Blueprint) and his feedback, which shaped **Keep as Installed**.
 
 ## Where to get help
 
