@@ -297,7 +297,7 @@ the blueprint's per-device declaration status and to current inventory:
 The retire gate runs this check after the count check. Migrations whose
 profile wasn't checked first (before 1.8) keep the count check alone.
 
-**Reports.** Each Evidence or profile check exports as PDF, Excel (.xlsx) or CSV.
+**Reports.** Each device check, on a migration or a profile, exports from its Devices panel as PDF, Excel (.xlsx) or CSV.
 **File ▸ Export Pre-Migration Report** lists every profile with who has it and
 who its scope reaches; **Export Migration Report** lists every migration with
 its evidence, plus a sheet of every device line. Cells a spreadsheet would run
